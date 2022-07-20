@@ -1,39 +1,116 @@
 #!/bin/bash
-date
-touch /tmp/bootstrap.txt
-echo LANG=en_US.utf-8 >> /etc/environment
-echo LC_ALL=en_US.UTF-8 >> /etc/environment
-. /home/ec2-user/.bashrc
-yum -y remove aws-cli >> /tmp/bootstrap.txt 
-yum -y install sqlite telnet jq strace tree gcc glibc-static python3 python3-pip gettext bash-completion wget >> /tmp/bootstrap.txt
 
-echo '=== CONFIGURE default python version ===' >> /tmp/bootstrap.txt
-PATH=$PATH:/usr/bin 
-alternatives --set python /usr/bin/python3.6 >> /tmp/bootstrap.txt
+# Cloud9 Bootstrap Script
+#
+# Testing on Amazon Linux 2
+#
+# 1. Installs homebrew
+# 2. Upgrades to latest AWS CLI
+# 3. Upgrades AWS SAM CLI
+#
+# Usually takes about 8 minutes to complete
 
-echo '=== INSTALL and CONFIGURE default software components ===' >> /tmp/bootstrap.txt
-sudo -H -u ec2-user bash -c "pip install --upgrade pip" >> /tmp/bootstrap.txt
-sudo -H -u ec2-user bash -c "pip install --user -U boto boto3 botocore awscli aws-sam-cli yq" >> /tmp/bootstrap.txt
+set -exo pipefail
+exec 2> >(tee -a "/tmp/c9bootstrap.log")
+RED='\033[0;31m'
+YELLOW='\033[1;33m'
+NC='\033[0m'
 
-echo '=== CONFIGURE awscli and setting ENVIRONMENT VARS ===' >> /tmp/bootstrap.txt
-echo "complete -C '/usr/local/bin/aws_completer' aws" >> /home/ec2-user/.bashrc >> /tmp/bootstrap.txt
-mkdir /home/ec2-user/.aws >> /tmp/bootstrap.txt
+SAM_INSTALL_DIR="sam-installation"
 
-echo '[default]' > /home/ec2-user/.aws/config >> /tmp/bootstrap.txt
-echo 'output = json' >> /home/ec2-user/.aws/config >> /tmp/bootstrap.txt
+function _logger() {
+    echo -e "$(date) ${YELLOW}[*] $@ ${NC}"
+}
 
-chmod 600 /home/ec2-user/.aws/config && chmod 600 /home/ec2-user/.aws/credentials >> /tmp/bootstrap.txt
+function update_system() {
+    _logger "[+] Updating system packages"
+    sudo yum update -y --skip-broken
+}
 
-echo 'PATH=$PATH:/usr/local/bin' >> /home/ec2-user/.bashrc >> /tmp/bootstrap.txt
-echo 'export PATH' >> /home/ec2-user/.bashrc >> /tmp/bootstrap.txt
-echo '=== CLEANING /home/ec2-user ===' >> /tmp/bootstrap.txt
+function update_python_packages() {
+    _logger "[+] Upgrading Python pip and setuptools"
+    python3 -m pip install --upgrade pip setuptools --user
 
-for f in cloud9; do rm -rf /home/ec2-user/$f; done >> /tmp/bootstrap.txt
+    _logger "[+] Installing latest AWS CLI"
+    # --user installs into $HOME/.local/bin/aws. After this is installed, remove the prior version
+    # in /usr/bin/. The --upgrade isn't necssary on a new install, but saft to leave in if Cloud9
+    # ever installs the aws-cli this way.
+    python3 -m pip install --upgrade --user awscli
+    if [[ -f /usr/bin/aws ]]; then
+        sudo rm -rf /usr/bin/aws*
+    fi
+}
 
-        chown -R ec2-user:ec2-user /home/ec2-user/ >> /tmp/bootstrap.txt
+function install_utility_tools() {
+    _logger "[+] Installing jq and yq"
+    sudo yum install -y jq
+    wget -O /tmp/yq_linux_amd64.tar.gz https://github.com/mikefarah/yq/releases/download/v4.11.2/yq_linux_amd64.tar.gz
+    sudo -- sh -c 'tar -xvzf /tmp/yq_linux_amd64.tar.gz && mv yq_linux_amd64 /usr/bin/yq'
+}
 
-        echo '=== PREPARE REBOOT in 1 minute with at ===' >> /tmp/bootstrap.txt
+function upgrade_sam_cli() {
+    if [[ ! -f aws-sam-cli-linux-x86_64.zip ]]; then
+        _logger "[+] Dowloading latest SAM version"
+        curl -Ls -O https://github.com/aws/aws-sam-cli/releases/latest/download/aws-sam-cli-linux-x86_64.zip
+    fi
 
-        FILE=$(mktemp) && echo $FILE && echo '#!/bin/bash' > $FILE && echo 'reboot -f --verbose' >> $FILE && at now + 1 minute -f $FILE 
+    if [[ ! -d $SAM_INSTALL_DIR ]]; then
+        unzip aws-sam-cli-linux-x86_64.zip -d $SAM_INSTALL_DIR
+    fi
 
-        echo "Bootstrap completed with return code $?" >> /tmp/bootstrap.txt
+    _logger "[+] Updating SAM..."
+    sudo ./$SAM_INSTALL_DIR/install --update
+
+    _logger "[+] Updating Cloud9 SAM binary"
+    # Allows for local invoke within IDE (except debug run)
+    ln -sf $(which sam) ~/.c9/bin/sam
+}
+
+function configure_aws_cli() {
+    _logger "[+] Configuring AWS CLI for Cloud9..."
+    echo "export AWS_DEFAULT_REGION=$(curl -s 169.254.169.254/latest/dynamic/instance-identity/document | jq -r .region)" >> ~/.bashrc
+    echo "export AWS_REGION=\$AWS_DEFAULT_REGION" >> ~/.bashrc
+    echo "export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)" >> ~/.bashrc
+    source ~/.bashrc
+
+}
+
+
+function configure_bash_profile() {
+
+    _logger "[+] Configuring AWS CLI for Cloud9..."
+    echo "export AWS_ACCOUNT_ID=${AWS_ACCOUNT_ID}" | tee -a ~/.bash_profile
+    echo "export AWS_REGION=${AWS_REGION}" | tee -a ~/.bash_profile
+    echo "export TIMESTAMP=$(date +%s)" | tee -a ~/.bash_profile
+    source  ~/.bash_profile
+    aws configure set default.region ${AWS_REGION}
+    aws configure get default.region
+
+}
+
+function disable_c9_temp_creds() {
+    _logger "[+] Disabling AWS managed temporary credentials for Cloud9..."
+    aws cloud9 update-environment  --environment-id $C9_PID --managed-credentials-action DISABLE
+}
+function cleanup() {
+    if [[ -d $SAM_INSTALL_DIR ]]; then
+        rm -rf $SAM_INSTALL_DIR
+    fi
+}
+
+function main() {
+    update_system
+    update_python_packages
+    install_utility_tools
+    upgrade_sam_cli
+    configure_aws_cli
+    configure_bash_profile
+    disable_c9_temp_creds
+    cleanup
+
+    echo -e "${RED} [!!!!!!!!!] To be safe, I suggest closing this terminal and opening a new one! ${NC}"
+    _logger "[+] Restarting Shell to reflect changes"
+    exec ${SHELL}
+}
+
+main
