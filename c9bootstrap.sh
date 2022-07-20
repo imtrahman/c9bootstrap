@@ -30,14 +30,6 @@ function update_python_packages() {
     python3 -m pip install --upgrade pip setuptools --user
 
     _logger "[+] Installing latest AWS CLI"
-    # --user installs into $HOME/.local/bin/aws. After this is installed, remove the prior version
-    # in /usr/bin/. The --upgrade isn't necssary on a new install, but saft to leave in if Cloud9
-    # ever installs the aws-cli this way.
-    #echo "PATH=$PATH:$HOME/.local/bin:$HOME/bin" >> ~/.bashrc
-    #python3 -m pip install --upgrade --user awscli
-    #if [[ -f /usr/bin/aws ]]; then
-    #    sudo rm -rf /usr/bin/aws*
-    #fi
 }
 
 function install_utility_tools() {
@@ -77,9 +69,7 @@ function disable_c9_temp_creds() {
     aws cloud9 update-environment  --environment-id $C9_PID --managed-credentials-action DISABLE
 }
 function cleanup() {
-    if [[ -d $SAM_INSTALL_DIR ]]; then
-        rm -rf $SAM_INSTALL_DIR
-    fi
+    sudo rm -rf ./aws ./awscliv2.zip
 }
 
 function main() {
@@ -93,7 +83,7 @@ function main() {
 
     echo -e "${RED} [!!!!!!!!!] To be safe, I suggest closing this terminal and opening a new one! ${NC}"
     _logger "[+] Restarting Shell to reflect changes"
-    exec ${SHELL}
+    #exec ${SHELL}
     shutdown -r now
 }
 
