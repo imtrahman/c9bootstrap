@@ -48,24 +48,6 @@ function install_utility_tools() {
     sudo -- sh -c 'tar -xvzf /tmp/yq_linux_amd64.tar.gz && mv yq_linux_amd64 /usr/bin/yq'
 }
 
-function upgrade_sam_cli() {
-    if [[ ! -f aws-sam-cli-linux-x86_64.zip ]]; then
-        _logger "[+] Dowloading latest SAM version"
-        curl -Ls -O https://github.com/aws/aws-sam-cli/releases/latest/download/aws-sam-cli-linux-x86_64.zip
-    fi
-
-    if [[ ! -d $SAM_INSTALL_DIR ]]; then
-        unzip aws-sam-cli-linux-x86_64.zip -d $SAM_INSTALL_DIR
-    fi
-
-    _logger "[+] Updating SAM..."
-    sudo ./$SAM_INSTALL_DIR/install --update
-
-    _logger "[+] Updating Cloud9 SAM binary"
-    # Allows for local invoke within IDE (except debug run)
-    ln -sf $(which sam) ~/.c9/bin/sam
-}
-
 function configure_aws_cli() {
     _logger "[+] Configuring AWS CLI for Cloud9..."
     echo "export AWS_DEFAULT_REGION=$(curl -s 169.254.169.254/latest/dynamic/instance-identity/document | jq -r .region)" >> ~/.bashrc
@@ -102,7 +84,6 @@ function main() {
     update_system
     update_python_packages
     install_utility_tools
-    upgrade_sam_cli
     configure_aws_cli
     configure_bash_profile
     disable_c9_temp_creds
