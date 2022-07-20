@@ -58,7 +58,7 @@ function configure_bash_profile() {
     echo "export AWS_ACCOUNT_ID=${AWS_ACCOUNT_ID}" | tee -a ~/.bash_profile
     echo "export AWS_REGION=${AWS_REGION}" | tee -a ~/.bash_profile
     echo "export TIMESTAMP=$(date +%s)" | tee -a ~/.bash_profile
-    source  ~/.bash_profile 
+    source  /home/ec2-user/.bash_profile 
     aws configure set default.region ${AWS_REGION}
     aws configure get default.region
 
@@ -66,8 +66,8 @@ function configure_bash_profile() {
 
 function disable_c9_temp_creds() {
     _logger "[+] Disabling AWS managed temporary credentials for Cloud9..."
-    source ~/.bash_profile
-    source ~/.bashrc
+    source /home/ec2-user/.bash_profile
+    source /home/ec2-user/.bashrc
     ENV_ID=`echo $C9_PID`
     aws cloud9 update-environment  --environment-id $ENV_ID --managed-credentials-action DISABLE
 }
