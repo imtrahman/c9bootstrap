@@ -37,6 +37,7 @@ function install_utility_tools() {
     sudo yum install -y jq
     wget -O yq_linux_amd64.tar.gz https://github.com/mikefarah/yq/releases/download/v4.11.2/yq_linux_amd64.tar.gz
     sudo -- sh -c 'tar -xvzf yq_linux_amd64.tar.gz && mv yq_linux_amd64 /usr/bin/yq'
+    cd $/HOME/environment/
     curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
     unzip awscliv2.zip
     sudo ./aws/install
