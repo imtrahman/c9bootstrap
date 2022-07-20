@@ -32,6 +32,7 @@ function update_python_packages() {
     # --user installs into $HOME/.local/bin/aws. After this is installed, remove the prior version
     # in /usr/bin/. The --upgrade isn't necssary on a new install, but saft to leave in if Cloud9
     # ever installs the aws-cli this way.
+    echo "PATH=$PATH:$HOME/.local/bin:$HOME/bin" >> ~/.bashrc
     python3 -m pip install --upgrade --user awscli
     if [[ -f /usr/bin/aws ]]; then
         sudo rm -rf /usr/bin/aws*
