@@ -64,6 +64,7 @@ function configure_bash_profile() {
     echo "export TIMESTAMP=$(date +%s)" | tee -a ~/.bash_profile
     source  ~/.bash_profile 
     . ~/.bashrc
+    PATH=$PATH:$HOME/.local/bin
     aws configure set default.region ${AWS_REGION}
     aws configure get default.region
 
