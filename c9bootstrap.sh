@@ -21,6 +21,7 @@ function _logger() {
 
 function update_system() {
     _logger "[+] Updating system packages"
+    sudo yum clean all
     sudo yum update -y --skip-broken
 }
 
@@ -32,11 +33,11 @@ function update_python_packages() {
     # --user installs into $HOME/.local/bin/aws. After this is installed, remove the prior version
     # in /usr/bin/. The --upgrade isn't necssary on a new install, but saft to leave in if Cloud9
     # ever installs the aws-cli this way.
-    echo "PATH=$PATH:$HOME/.local/bin:$HOME/bin" >> ~/.bashrc
-    python3 -m pip install --upgrade --user awscli
-    if [[ -f /usr/bin/aws ]]; then
-        sudo rm -rf /usr/bin/aws*
-    fi
+    #echo "PATH=$PATH:$HOME/.local/bin:$HOME/bin" >> ~/.bashrc
+    #python3 -m pip install --upgrade --user awscli
+    #if [[ -f /usr/bin/aws ]]; then
+    #    sudo rm -rf /usr/bin/aws*
+    #fi
 }
 
 function install_utility_tools() {
@@ -44,6 +45,9 @@ function install_utility_tools() {
     sudo yum install -y jq
     wget -O yq_linux_amd64.tar.gz https://github.com/mikefarah/yq/releases/download/v4.11.2/yq_linux_amd64.tar.gz
     sudo -- sh -c 'tar -xvzf yq_linux_amd64.tar.gz && mv yq_linux_amd64 /usr/bin/yq'
+    curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+    unzip awscliv2.zip
+    sudo ./aws/install
 }
 
 function configure_aws_cli() {
@@ -63,8 +67,6 @@ function configure_bash_profile() {
     echo "export AWS_REGION=${AWS_REGION}" | tee -a ~/.bash_profile
     echo "export TIMESTAMP=$(date +%s)" | tee -a ~/.bash_profile
     source  ~/.bash_profile 
-    . ~/.bashrc
-    PATH="$PATH:$HOME/.local/bin"
     aws configure set default.region ${AWS_REGION}
     aws configure get default.region
 
@@ -92,6 +94,7 @@ function main() {
     echo -e "${RED} [!!!!!!!!!] To be safe, I suggest closing this terminal and opening a new one! ${NC}"
     _logger "[+] Restarting Shell to reflect changes"
     exec ${SHELL}
+    shutdown -r now
 }
 
 main
