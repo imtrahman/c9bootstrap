@@ -36,10 +36,10 @@ function install_utility_tools() {
     _logger "[+] Installing jq and yq"
     wget -O yq_linux_amd64.tar.gz https://github.com/mikefarah/yq/releases/download/v4.11.2/yq_linux_amd64.tar.gz
     sudo -- sh -c 'tar -xvzf yq_linux_amd64.tar.gz && mv yq_linux_amd64 /usr/bin/yq'
-    #cd $HOME/environment/
-    #curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-    #unzip awscliv2.zip
-    #sudo ./aws/install
+    cd /tmp
+    curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+    unzip awscliv2.zip
+    sudo ./aws/install --update
 }
 
 function configure_aws_cli() {
@@ -66,10 +66,11 @@ function configure_bash_profile() {
 
 function disable_c9_temp_creds() {
     _logger "[+] Disabling AWS managed temporary credentials for Cloud9..."
+    source ~/.bash_profile
     aws cloud9 update-environment  --environment-id $C9_PID --managed-credentials-action DISABLE
 }
 function cleanup() {
-    sudo rm -rf ./aws ./awscliv2.zip
+    sudo rm -rf /tmp/aws /tmp/awscliv2.zip
 }
 
 function main() {
