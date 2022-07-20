@@ -62,7 +62,8 @@ function configure_bash_profile() {
     echo "export AWS_ACCOUNT_ID=${AWS_ACCOUNT_ID}" | tee -a ~/.bash_profile
     echo "export AWS_REGION=${AWS_REGION}" | tee -a ~/.bash_profile
     echo "export TIMESTAMP=$(date +%s)" | tee -a ~/.bash_profile
-    source  ~/.bash_profile
+    source  ~/.bash_profile 
+    . ~/.bashrc
     aws configure set default.region ${AWS_REGION}
     aws configure get default.region
 
