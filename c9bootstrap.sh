@@ -36,10 +36,10 @@ function install_utility_tools() {
     _logger "[+] Installing jq and yq"
     wget -O yq_linux_amd64.tar.gz https://github.com/mikefarah/yq/releases/download/v4.11.2/yq_linux_amd64.tar.gz
     sudo -- sh -c 'tar -xvzf yq_linux_amd64.tar.gz && mv yq_linux_amd64 /usr/bin/yq'
-    cd $HOME/environment/
-    curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-    unzip awscliv2.zip
-    sudo ./aws/install
+    #cd $HOME/environment/
+    #curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+    #unzip awscliv2.zip
+    #sudo ./aws/install
 }
 
 function configure_aws_cli() {
