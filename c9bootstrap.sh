@@ -42,8 +42,8 @@ function update_python_packages() {
 function install_utility_tools() {
     _logger "[+] Installing jq and yq"
     sudo yum install -y jq
-    wget -O /tmp/yq_linux_amd64.tar.gz https://github.com/mikefarah/yq/releases/download/v4.11.2/yq_linux_amd64.tar.gz
-    sudo -- sh -c 'tar -xvzf /tmp/yq_linux_amd64.tar.gz && mv yq_linux_amd64 /usr/bin/yq'
+    wget -O yq_linux_amd64.tar.gz https://github.com/mikefarah/yq/releases/download/v4.11.2/yq_linux_amd64.tar.gz
+    sudo -- sh -c 'tar -xvzf yq_linux_amd64.tar.gz && mv yq_linux_amd64 /usr/bin/yq'
 }
 
 function configure_aws_cli() {
