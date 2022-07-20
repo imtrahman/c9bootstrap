@@ -84,7 +84,7 @@ function main() {
     echo -e "${RED} [!!!!!!!!!] To be safe, I suggest closing this terminal and opening a new one! ${NC}"
     _logger "[+] Restarting Shell to reflect changes"
     #exec ${SHELL}
-    shutdown -r now
+    sudo shutdown -r now
 }
 
 main
