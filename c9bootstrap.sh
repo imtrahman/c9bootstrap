@@ -29,37 +29,38 @@ function update_system() {
 function update_python_packages() {
     _logger "[+] Upgrading Python pip and setuptools"
     python3 -m pip install --upgrade pip setuptools --user
-
     _logger "[+] Installing latest AWS CLI"
+    cd /tmp
+    curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+    unzip awscliv2.zip
+    sudo ./aws/install --update
+    sudo rm -rf /tmp/aws /tmp/awscliv2.zip
+
 }
 
 function install_utility_tools() {
     _logger "[+] Installing jq and yq"
     wget -O yq_linux_amd64.tar.gz https://github.com/mikefarah/yq/releases/download/v4.11.2/yq_linux_amd64.tar.gz
     sudo -- sh -c 'tar -xvzf yq_linux_amd64.tar.gz && mv yq_linux_amd64 /usr/bin/yq'
-    cd /tmp
-    curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-    unzip awscliv2.zip
-    sudo ./aws/install --update
 }
 
 function configure_aws_cli() {
     _logger "[+] Configuring AWS CLI for Cloud9..."
-    echo "export AWS_DEFAULT_REGION=$(curl -s 169.254.169.254/latest/dynamic/instance-identity/document | jq -r .region)" >> $HOME/.bashrc
-    echo "export AWS_REGION=\$AWS_DEFAULT_REGION" >> ~/.bashrc
-    echo "export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)" >> $HOME/.bashrc
-    source $HOME/.bashrc
+    HOME="/home/ec2-user"
+    echo "export AWS_DEFAULT_REGION=$(curl -s 169.254.169.254/latest/dynamic/instance-identity/document | jq -r .region)" >> ${HOME}/.bashrc
+    echo "export AWS_REGION=\$AWS_DEFAULT_REGION" >> ${HOME}/.bashrc
+    echo "export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)" >> ${HOME}/.bashrc
 
 }
 
 
 function configure_bash_profile() {
-
     _logger "[+] Configuring AWS CLI for Cloud9..."
-    echo "export AWS_ACCOUNT_ID=${AWS_ACCOUNT_ID}" >> tee -a $HOME/.bash_profile
-    echo "export AWS_REGION=${AWS_REGION}" >> $HOME/.bash_profile
-    echo "export TIMESTAMP=$(date +%s)" >> $HOME/.bash_profile
-    source  $HOME/.bash_profile 
+    HOME="/home/ec2-user"
+    source ${HOME}/.bashrc
+    echo "export AWS_ACCOUNT_ID=${AWS_ACCOUNT_ID}" >> ${HOME}/.bash_profile
+    echo "export AWS_REGION=${AWS_REGION}" >> ${HOME}/.bash_profile
+    echo "export TIMESTAMP=$(date +%s)" >> ${HOME}/.bash_profile
     aws configure set default.region ${AWS_REGION}
     aws configure get default.region
 
