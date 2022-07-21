@@ -68,9 +68,12 @@ function configure_bash_profile() {
 function disable_c9_temp_creds() {
     _logger "[+] Disabling AWS managed temporary credentials for Cloud9..."
     HOME="/home/ec2-user"
+    echo $C9_PID
     source ${HOME}/.bashrc
-    exec aws cloud9 update-environment  --environment-id ${C9_PID} --managed-credentials-action DISABLE
-    rm -vf ${HOME}/.aws/credentials
+    source ${HOME}/.bash_profile
+    ENV_ID=`env | grep -i c9_pid | cut -d '=' -f 2`
+    echo $ENV_ID
+    exec  aws cloud9 update-environment  --environment-id $ENV_ID --managed-credentials-action DISABLE
 }
 
 function cleanup(){
