@@ -56,9 +56,9 @@ function configure_aws_cli() {
 function configure_bash_profile() {
 
     _logger "[+] Configuring AWS CLI for Cloud9..."
-    echo "export AWS_ACCOUNT_ID=${AWS_ACCOUNT_ID}" | tee -a $HOME/.bash_profile
-    echo "export AWS_REGION=${AWS_REGION}" | tee -a $HOME/.bash_profile
-    echo "export TIMESTAMP=$(date +%s)" | tee -a $HOME/.bash_profile
+    echo "export AWS_ACCOUNT_ID=${AWS_ACCOUNT_ID}" >> tee -a $HOME/.bash_profile
+    echo "export AWS_REGION=${AWS_REGION}" >> $HOME/.bash_profile
+    echo "export TIMESTAMP=$(date +%s)" >> $HOME/.bash_profile
     source  $HOME/.bash_profile 
     aws configure set default.region ${AWS_REGION}
     aws configure get default.region
@@ -72,7 +72,7 @@ function disable_c9_temp_creds() {
     sudo -H -u ec2-user bash -c "aws cloud9 update-environment  --environment-id $C9_PID --managed-credentials-action DISABLE"
     sudo -H -u ec2-user bash -c "rm -vf ${HOME}/.aws/credentials"
 }
-function cleanup() {
+function cleanup() 
     sudo rm -rf /tmp/aws /tmp/awscliv2.zip
 }
 
