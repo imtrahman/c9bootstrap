@@ -11,6 +11,7 @@
 
 set -exo pipefail
 exec 2> >(tee -a "/tmp/c9bootstrap.log")
+HOME="/home/ec2-user"
 RED='\033[0;31m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
@@ -44,10 +45,10 @@ function install_utility_tools() {
 
 function configure_aws_cli() {
     _logger "[+] Configuring AWS CLI for Cloud9..."
-    echo "export AWS_DEFAULT_REGION=$(curl -s 169.254.169.254/latest/dynamic/instance-identity/document | jq -r .region)" >> ~/.bashrc
+    echo "export AWS_DEFAULT_REGION=$(curl -s 169.254.169.254/latest/dynamic/instance-identity/document | jq -r .region)" >> $HOME/.bashrc
     echo "export AWS_REGION=\$AWS_DEFAULT_REGION" >> ~/.bashrc
-    echo "export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)" >> ~/.bashrc
-    source ~/.bashrc
+    echo "export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)" >> $HOME/.bashrc
+    source $HOME/.bashrc
 
 }
 
@@ -55,10 +56,10 @@ function configure_aws_cli() {
 function configure_bash_profile() {
 
     _logger "[+] Configuring AWS CLI for Cloud9..."
-    echo "export AWS_ACCOUNT_ID=${AWS_ACCOUNT_ID}" | tee -a ~/.bash_profile
-    echo "export AWS_REGION=${AWS_REGION}" | tee -a ~/.bash_profile
-    echo "export TIMESTAMP=$(date +%s)" | tee -a ~/.bash_profile
-    source  ~/.bash_profile 
+    echo "export AWS_ACCOUNT_ID=${AWS_ACCOUNT_ID}" | tee -a $HOME/.bash_profile
+    echo "export AWS_REGION=${AWS_REGION}" | tee -a $HOME/.bash_profile
+    echo "export TIMESTAMP=$(date +%s)" | tee -a $HOME/.bash_profile
+    source  $HOME/.bash_profile 
     aws configure set default.region ${AWS_REGION}
     aws configure get default.region
 
@@ -66,8 +67,6 @@ function configure_bash_profile() {
 
 function disable_c9_temp_creds() {
     _logger "[+] Disabling AWS managed temporary credentials for Cloud9..."
-    #source /home/ec2-user/.bash_profile
-    #source /home/ec2-user/.bashrc
     ENV_ID=`echo $C9_PID`
     C9_PID=`aws cloud9 list-environments | jq -r .environmentIds[0]`
     aws cloud9 update-environment  --environment-id $C9_PID --managed-credentials-action DISABLE
