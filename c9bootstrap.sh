@@ -74,7 +74,7 @@ function disable_c9_temp_creds() {
     rm -rf ~/.aws/credentials ${HOME}/.aws/credentials
     aws sts get-caller-identity
     C9_PID=`aws cloud9 list-environments | jq -r .environmentIds[0]`
-    exec  aws cloud9 update-environment  --environment-id $C9_PID --managed-credentials-action DISABLE
+    aws cloud9 update-environment  --environment-id $C9_PID --managed-credentials-action DISABLE
 }
 
 function cleanup(){
