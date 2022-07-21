@@ -70,6 +70,7 @@ function disable_c9_temp_creds() {
     ENV_ID=`echo $C9_PID`
     C9_PID=`aws cloud9 list-environments | jq -r .environmentIds[0]`
     sudo -H -u ec2-user bash -c aws cloud9 update-environment  --environment-id $C9_PID --managed-credentials-action DISABLE
+    rm -vf ${HOME}/.aws/credentials
 }
 function cleanup() {
     sudo rm -rf /tmp/aws /tmp/awscliv2.zip
