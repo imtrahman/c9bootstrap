@@ -74,8 +74,6 @@ function disable_c9_temp_creds() {
     rm -rf ~/.aws/credentials ${HOME}/.aws/credentials
     aws sts get-caller-identity
     C9_PID=`aws cloud9 list-environments | jq -r .environmentIds[0]`
-    aws iam attach-role-policy --role-name ProtonServiceRole --policy-arn arn:aws:iam::aws:policy/AdministratorAccess
-    aws proton update-account-settings --region $AWS_REGION --pipeline-service-role-arn "arn:aws:iam::${AWS_ACCOUNT_ID}:role/ProtonServiceRole"
     aws cloud9 update-environment  --environment-id $C9_PID --managed-credentials-action DISABLE
 }
 
