@@ -67,10 +67,10 @@ function configure_bash_profile() {
 
 function disable_c9_temp_creds() {
     _logger "[+] Disabling AWS managed temporary credentials for Cloud9..."
-    ENV_ID=`echo $C9_PID`
-    C9_PID=`aws cloud9 list-environments | jq -r .environmentIds[0]`
-    sudo -H -u ec2-user bash -c aws cloud9 update-environment  --environment-id $C9_PID --managed-credentials-action DISABLE
-    rm -vf ${HOME}/.aws/credentials
+   # ENV_ID=`echo $C9_PID`
+    sudo -H -u ec2-user bash -c "C9_PID=`aws cloud9 list-environments | jq -r .environmentIds[0]`"
+    sudo -H -u ec2-user bash -c "aws cloud9 update-environment  --environment-id $C9_PID --managed-credentials-action DISABLE"
+    sudo -H -u ec2-user bash -c "rm -vf ${HOME}/.aws/credentials"
 }
 function cleanup() {
     sudo rm -rf /tmp/aws /tmp/awscliv2.zip
